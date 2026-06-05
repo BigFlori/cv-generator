@@ -5,6 +5,7 @@ import {
   CV_SCHEMA_VERSION,
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
+  DEFAULT_PHOTO_WIDTH_PX,
   DEFAULT_SECTION_INDENT_MM,
   type CvData,
 } from "./cv-types";
@@ -62,6 +63,12 @@ function migrate(cv: CvData): CvData {
   if (typeof next.sectionIndent !== "number") {
     next.sectionIndent = DEFAULT_SECTION_INDENT_MM;
   }
+
+  // v7: kép elrendezése (forma, méret, vízszintes eltolás). Korábbi adatban a
+  // kép fix négyzetes és a margóhoz tapadt volt — ennek megfelelő alapértékek.
+  if (next.photoShape !== "portrait") next.photoShape = "square";
+  if (typeof next.photoWidth !== "number") next.photoWidth = DEFAULT_PHOTO_WIDTH_PX;
+  if (typeof next.photoOffsetX !== "number") next.photoOffsetX = 0;
 
   next.schemaVersion = CV_SCHEMA_VERSION;
   return next;

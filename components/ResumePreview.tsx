@@ -1,7 +1,9 @@
 import {
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
+  DEFAULT_PHOTO_WIDTH_PX,
   DEFAULT_SECTION_INDENT_MM,
+  PHOTO_ASPECT,
   type ContactItem,
   type CvData,
   type TimelineEntry,
@@ -80,6 +82,18 @@ export default function ResumePreview({ cv }: { cv: CvData }) {
   const marginY = cv.marginY ?? DEFAULT_MARGIN_Y_MM;
   const marginX = cv.marginX ?? DEFAULT_MARGIN_X_MM;
   const sectionIndent = cv.sectionIndent ?? DEFAULT_SECTION_INDENT_MM;
+
+  // Profilkép elrendezése: szélesség (px), arány (forma) és vízszintes eltolás (mm).
+  // A magasságot az arányból számoljuk (aspect = szélesség / magasság).
+  const photoWidth = cv.photoWidth ?? DEFAULT_PHOTO_WIDTH_PX;
+  const photoAspect = PHOTO_ASPECT[cv.photoShape ?? "square"];
+  const photoHeight = photoWidth / photoAspect;
+  const photoOffsetX = cv.photoOffsetX ?? 0;
+  // A kép alja egy fix vízszintes vonalon marad: a layoutban ekkora ("slot")
+  // magasságú helyet foglal (az alapszélességből az adott arányra számolva),
+  // a tényleges kép pedig ehhez alulra horgonyozva nő — így méretnöveléskor
+  // felfelé lóg ki, az alja nem mozdul, a fejléc magassága stabil marad.
+  const photoSlotHeight = DEFAULT_PHOTO_WIDTH_PX / photoAspect;
   return (
     <article
       className="cv-page bg-white font-sans text-neutral-800"
@@ -92,9 +106,17 @@ export default function ResumePreview({ cv }: { cv: CvData }) {
             <span className="font-bold">{cv.firstName}</span>
             <span className="ml-3 font-normal text-neutral-500">{cv.lastName}</span>
           </h1>
-          <div className="mt-2 space-y-0.5 text-[12.5px] text-[var(--cv-accent)]">
+          <div className="mt-2 space-y-0.5 text-[12.5px]">
             {groupContacts(cv.contacts).map((row, ri) => (
-              <p key={ri}>
+              <p
+                key={ri}
+                className={
+                  // Az első sor (pl. helyszín · telefon) a bevezető/leírások
+                  // törzsszín-árnyalatát kapja (neutral-600); az alatta lévő
+                  // sorok kiemelő színnel és félkövéren.
+                  ri === 0 ? "text-neutral-600" : "font-semibold text-[var(--cv-accent)]"
+                }
+              >
                 {row.map((c, i) => (
                   <span key={c.id}>
                     {i > 0 && <span className="mx-1.5 text-neutral-400">·</span>}
@@ -112,20 +134,36 @@ export default function ResumePreview({ cv }: { cv: CvData }) {
           </div>
         </div>
 
-        {/* Profilkép vagy helyőrző */}
-        <div className="h-[102px] w-[102px] shrink-0 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100">
-          {cv.photoDataUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={cv.photoDataUrl}
-              alt={`${cv.firstName} ${cv.lastName}`}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
-              fotó
-            </div>
-          )}
+        {/* Profilkép slot: fix magasságú hely a layoutban (a fejléc magasságát
+            stabilan tartja). A tényleges kép alulra horgonyozva nő, így a
+            méretnövelés felfelé lóg ki, az alja vízszintesen fix marad. */}
+        <div
+          className="relative z-10 shrink-0"
+          style={{ width: `${photoWidth}px`, height: `${photoSlotHeight}px` }}
+        >
+          {/* A méret és arány állítható; a translateX szabad vízszintes
+              mozgatást ad (a szöveg fölé is csúszhat). */}
+          <div
+            className="absolute bottom-0 right-0 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100"
+            style={{
+              width: `${photoWidth}px`,
+              height: `${photoHeight}px`,
+              transform: `translateX(${photoOffsetX}mm)`,
+            }}
+          >
+            {cv.photoDataUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={cv.photoDataUrl}
+                alt={`${cv.firstName} ${cv.lastName}`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
+                fotó
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

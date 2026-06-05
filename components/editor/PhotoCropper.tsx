@@ -1,16 +1,16 @@
 "use client";
 
 // Egyszerű kép-szerkesztő modál a profilképhez: nagyítás (zoom) + körbevágás.
-// Library nélkül, canvas + pointer eseményekkel. A kimenet egy négyzetes
-// (alapból 400×400) JPEG/PNG data URL, ami illeszkedik az object-cover előnézethez.
+// Library nélkül, canvas + pointer eseményekkel. A kimenet a megadott arányú
+// (alapból négyzetes) PNG data URL, ami illeszkedik az object-cover előnézethez.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PhotoCrop } from "@/lib/cv-types";
 
-/** A kimeneti négyzet oldalmérete pixelben. */
-const OUTPUT_SIZE = 400;
-/** A szerkesztő nézőablakának mérete CSS pixelben. */
-const VIEWPORT = 300;
+/** A kimeneti kép hosszabbik oldalának mérete pixelben. */
+const OUTPUT_BASE = 400;
+/** A szerkesztő nézőablakának hosszabbik oldala CSS pixelben. */
+const VIEWPORT_BASE = 300;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
 
@@ -19,6 +19,7 @@ type Offset = { x: number; y: number };
 export default function PhotoCropper({
   src,
   initialCrop,
+  aspect = 1,
   onCancel,
   onConfirm,
 }: {
@@ -26,10 +27,18 @@ export default function PhotoCropper({
   src: string;
   /** Korábban alkalmazott kivágás — ha van, ezzel nyílik meg a szerkesztő. */
   initialCrop?: PhotoCrop | null;
+  /** A kivágás szélesség:magasság aránya (1 = négyzet, <1 = álló). */
+  aspect?: number;
   onCancel: () => void;
-  /** A körbevágott négyzetes képet és az alkalmazott kivágás beállításait adja vissza. */
+  /** A körbevágott képet és az alkalmazott kivágás beállításait adja vissza. */
   onConfirm: (result: { dataUrl: string; crop: PhotoCrop }) => void;
 }) {
+  // A nézőablak és a kimenet mérete az aránytól függ (a hosszabbik oldal fix).
+  const VIEW_W = aspect >= 1 ? VIEWPORT_BASE : Math.round(VIEWPORT_BASE * aspect);
+  const VIEW_H = aspect >= 1 ? Math.round(VIEWPORT_BASE / aspect) : VIEWPORT_BASE;
+  const OUT_W = aspect >= 1 ? OUTPUT_BASE : Math.round(OUTPUT_BASE * aspect);
+  const OUT_H = aspect >= 1 ? Math.round(OUTPUT_BASE / aspect) : OUTPUT_BASE;
+
   // A betöltött kép és natúr méretei — a crop számításához kell.
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
@@ -41,7 +50,7 @@ export default function PhotoCropper({
   const dragRef = useRef<{ startX: number; startY: number; origin: Offset } | null>(null);
 
   // ── Alap "cover" skála: a kép teljesen kitölti a nézőablakot ──
-  const coverScale = natural ? Math.max(VIEWPORT / natural.w, VIEWPORT / natural.h) : 1;
+  const coverScale = natural ? Math.max(VIEW_W / natural.w, VIEW_H / natural.h) : 1;
   const scale = coverScale * zoom;
   const dispW = natural ? natural.w * scale : 0;
   const dispH = natural ? natural.h * scale : 0;
@@ -49,10 +58,10 @@ export default function PhotoCropper({
   // Az eltolást úgy korlátozzuk, hogy a kép mindig kitöltse a nézőablakot.
   const clamp = useCallback(
     (o: Offset): Offset => ({
-      x: Math.min(0, Math.max(VIEWPORT - dispW, o.x)),
-      y: Math.min(0, Math.max(VIEWPORT - dispH, o.y)),
+      x: Math.min(0, Math.max(VIEW_W - dispW, o.x)),
+      y: Math.min(0, Math.max(VIEW_H - dispH, o.y)),
     }),
-    [dispW, dispH],
+    [dispW, dispH, VIEW_W, VIEW_H],
   );
 
   // A kép betöltése a natúr méretekért. Ha van korábbi kivágás, azt töltjük be,
@@ -66,14 +75,14 @@ export default function PhotoCropper({
         setZoom(initialCrop.zoom);
         setOffset({ x: initialCrop.offsetX, y: initialCrop.offsetY });
       } else {
-        const cover = Math.max(VIEWPORT / image.naturalWidth, VIEWPORT / image.naturalHeight);
+        const cover = Math.max(VIEW_W / image.naturalWidth, VIEW_H / image.naturalHeight);
         const w = image.naturalWidth * cover;
         const h = image.naturalHeight * cover;
-        setOffset({ x: (VIEWPORT - w) / 2, y: (VIEWPORT - h) / 2 });
+        setOffset({ x: (VIEW_W - w) / 2, y: (VIEW_H - h) / 2 });
       }
     };
     image.src = src;
-  }, [src, initialCrop]);
+  }, [src, initialCrop, VIEW_W, VIEW_H]);
 
   // Zoom közben a nézőablak közepét tartjuk fixen.
   function applyZoom(nextZoom: number) {
@@ -82,8 +91,8 @@ export default function PhotoCropper({
     setOffset((prev) => {
       const nextScale = coverScale * z;
       const ratio = nextScale / scale;
-      const cx = VIEWPORT / 2;
-      const cy = VIEWPORT / 2;
+      const cx = VIEW_W / 2;
+      const cy = VIEW_H / 2;
       const nw = natural ? natural.w * nextScale : 0;
       const nh = natural ? natural.h * nextScale : 0;
       const o = {
@@ -91,8 +100,8 @@ export default function PhotoCropper({
         y: cy - (cy - prev.y) * ratio,
       };
       return {
-        x: Math.min(0, Math.max(VIEWPORT - nw, o.x)),
-        y: Math.min(0, Math.max(VIEWPORT - nh, o.y)),
+        x: Math.min(0, Math.max(VIEW_W - nw, o.x)),
+        y: Math.min(0, Math.max(VIEW_H - nh, o.y)),
       };
     });
   }
@@ -138,18 +147,19 @@ export default function PhotoCropper({
     const image = imgRef.current;
     if (!image || !natural) return;
 
-    // A nézőablak (0..VIEWPORT) pixelei a forráskép pixeleire képződnek le.
+    // A nézőablak (0..VIEW_W × 0..VIEH_H) pixelei a forráskép pixeleire képződnek le.
     const sx = -offset.x / scale;
     const sy = -offset.y / scale;
-    const sSize = VIEWPORT / scale;
+    const sW = VIEW_W / scale;
+    const sH = VIEW_H / scale;
 
     const canvas = document.createElement("canvas");
-    canvas.width = OUTPUT_SIZE;
-    canvas.height = OUTPUT_SIZE;
+    canvas.width = OUT_W;
+    canvas.height = OUT_H;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(image, sx, sy, sSize, sSize, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+    ctx.drawImage(image, sx, sy, sW, sH, 0, 0, OUT_W, OUT_H);
 
     // PNG, hogy az átlátszóság / minőség megmaradjon. A kivágás beállításait is
     // visszaadjuk, hogy az eredeti képet megőrizve később újra megnyitható legyen.
@@ -175,7 +185,7 @@ export default function PhotoCropper({
         {/* Nézőablak */}
         <div
           className="relative mx-auto touch-none cursor-grab overflow-hidden rounded-md bg-neutral-900 select-none active:cursor-grabbing"
-          style={{ width: VIEWPORT, height: VIEWPORT }}
+          style={{ width: VIEW_W, height: VIEW_H }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}

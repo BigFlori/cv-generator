@@ -4,11 +4,18 @@ import { useRef, useState } from "react";
 import {
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
+  DEFAULT_PHOTO_WIDTH_PX,
   DEFAULT_SECTION_INDENT_MM,
+  MAX_PHOTO_OFFSET_X_MM,
+  MAX_PHOTO_WIDTH_PX,
+  MIN_PHOTO_OFFSET_X_MM,
+  MIN_PHOTO_WIDTH_PX,
+  PHOTO_ASPECT,
   emptyContact,
   type ContactItem,
   type CvData,
   type PhotoCrop,
+  type PhotoShape,
 } from "@/lib/cv-types";
 import { useCvStorage } from "@/lib/use-cv-storage";
 import ResumePreview from "@/components/ResumePreview";
@@ -295,6 +302,53 @@ export default function CvEditor() {
             />
           </div>
 
+          {/* Kép elrendezése: forma, méret és vízszintes eltolás. */}
+          <div className="mt-3 space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+            <Field label="Kép formája">
+              <div className="flex gap-2">
+                {(["square", "portrait"] as PhotoShape[]).map((shape) => {
+                  const active = (cv.photoShape ?? "square") === shape;
+                  return (
+                    <button
+                      key={shape}
+                      type="button"
+                      onClick={() => patch({ photoShape: shape })}
+                      className={`rounded-md border px-3 py-1 text-xs font-medium transition ${
+                        active
+                          ? "border-neutral-900 bg-neutral-900 text-white"
+                          : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100"
+                      }`}
+                    >
+                      {shape === "square" ? "Négyzet" : "Portré"}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+            <Field label={`Kép mérete: ${cv.photoWidth ?? DEFAULT_PHOTO_WIDTH_PX} px`}>
+              <input
+                type="range"
+                min={MIN_PHOTO_WIDTH_PX}
+                max={MAX_PHOTO_WIDTH_PX}
+                step={1}
+                value={cv.photoWidth ?? DEFAULT_PHOTO_WIDTH_PX}
+                onChange={(e) => patch({ photoWidth: Number(e.target.value) })}
+                className="w-full accent-neutral-900"
+              />
+            </Field>
+            <Field label={`Vízszintes eltolás: ${cv.photoOffsetX ?? 0} mm`}>
+              <input
+                type="range"
+                min={MIN_PHOTO_OFFSET_X_MM}
+                max={MAX_PHOTO_OFFSET_X_MM}
+                step={1}
+                value={cv.photoOffsetX ?? 0}
+                onChange={(e) => patch({ photoOffsetX: Number(e.target.value) })}
+                className="w-full accent-neutral-900"
+              />
+            </Field>
+          </div>
+
           {/* Elérhetőségek */}
           <div className="mt-4">
             <div className="mb-2 flex items-center justify-between">
@@ -413,6 +467,7 @@ export default function CvEditor() {
       <PhotoCropper
         src={cropSrc}
         initialCrop={cropInitial}
+        aspect={PHOTO_ASPECT[cv.photoShape ?? "square"]}
         onCancel={() => {
           setCropSrc(null);
           setCropInitial(null);

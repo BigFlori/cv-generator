@@ -2,6 +2,7 @@ import {
   CV_SCHEMA_VERSION,
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
+  DEFAULT_PHOTO_WIDTH_PX,
   DEFAULT_SECTION_INDENT_MM,
   type CvData,
 } from "./cv-types";
@@ -18,6 +19,9 @@ export const defaultCv: CvData = {
   firstName: "FLÓRIÁN",
   lastName: "MOLNÁR",
   photoDataUrl: "",
+  photoShape: "square",
+  photoWidth: DEFAULT_PHOTO_WIDTH_PX,
+  photoOffsetX: 0,
   contacts: [
     { id: "c-location", text: "H-9730 Kőszeg" },
     { id: "c-phone", text: "+36/30 250-8322" },
