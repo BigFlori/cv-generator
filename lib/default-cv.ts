@@ -4,6 +4,7 @@ import {
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
   DEFAULT_SECTION_INDENT_MM,
+  DEFAULT_SECTION_TITLES,
   type CvData,
 } from "./cv-types";
 
@@ -95,14 +96,16 @@ export const defaultCv: CvData = {
     },
   ],
 
+  sectionTitles: { ...DEFAULT_SECTION_TITLES },
+
   skills: [
-    "English language exam (B2) – 2022",
-    "React, Next.js, TypeScript",
-    "Category B driving license – 2020",
-    "Java, Spring Boot",
-    "Agile software development",
-    "Microservice architecture",
-    "JIRA ticketing system",
-    "Git/GitHub version control",
+    { id: "skill-1", text: "English language exam (B2) – 2022" },
+    { id: "skill-2", text: "React, Next.js, TypeScript" },
+    { id: "skill-3", text: "Category B driving license – 2020" },
+    { id: "skill-4", text: "Java, Spring Boot" },
+    { id: "skill-5", text: "Agile software development" },
+    { id: "skill-6", text: "Microservice architecture" },
+    { id: "skill-7", text: "JIRA ticketing system" },
+    { id: "skill-8", text: "Git/GitHub version control" },
   ],
 };

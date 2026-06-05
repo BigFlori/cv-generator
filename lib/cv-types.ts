@@ -1,7 +1,15 @@
 // A CV adatmodellje. Minden kliensoldali — localStorage-ban tárolódik.
 // A schemaVersion segít, ha később változik a szerkezet (migráció a betöltésnél).
 
-export const CV_SCHEMA_VERSION = 7;
+export const CV_SCHEMA_VERSION = 9;
+
+/** A renderelt CV elrejthető szekciói. */
+export type SectionKey =
+  | "summary"
+  | "experience"
+  | "projects"
+  | "education"
+  | "competences";
 
 /** A lap alapértelmezett margói milliméterben. */
 export const DEFAULT_MARGIN_Y_MM = 18; // felső / alsó
@@ -35,6 +43,8 @@ export interface ContactItem {
   url?: string;
   /** Ha igaz, ez az elem új sorban kezdődik a fejlécben. */
   newLine?: boolean;
+  /** Ha igaz, az elem a szerkesztőben megmarad, de a renderelt CV-ből kimarad. */
+  hidden?: boolean;
 }
 
 /**
@@ -58,6 +68,16 @@ export interface TimelineEntry {
   title: string; // pl. "JUNIOR JAVA BACKEND DEVELOPER"
   organization: string; // pl. "IVY TECHNOLOGY KFT."
   description: string;
+  /** Ha igaz, a bejegyzés a szerkesztőben megmarad, de a renderelt CV-ből kimarad. */
+  hidden?: boolean;
+}
+
+/** Egy kompetencia-elem. Objektum (nem sima string), hogy elemenként elrejthető legyen. */
+export interface SkillItem {
+  id: string;
+  text: string;
+  /** Ha igaz, az elem a szerkesztőben megmarad, de a renderelt CV-ből kimarad. */
+  hidden?: boolean;
 }
 
 export interface CvData {
@@ -93,8 +113,14 @@ export interface CvData {
   projects: TimelineEntry[];
   education: TimelineEntry[];
 
-  // Kompetenciák — egyszerű lista, két oszlopban renderelve
-  skills: string[];
+  // Kompetenciák — lista, két oszlopban renderelve
+  skills: SkillItem[];
+
+  /** A renderelt CV-ből teljesen elrejtett szekciók. Hiányában minden látszik. */
+  hiddenSections?: SectionKey[];
+
+  /** A 4 szekció egyedi megjelenő neve. Hiányában az angol alapértelmezés érvényes. */
+  sectionTitles?: SectionTitles;
 }
 
 /** Stabil, ütközésmentes id-t ad új bejegyzésekhez (csak kliensen hívandó). */
@@ -110,7 +136,28 @@ export function emptyTimelineEntry(): TimelineEntry {
   return { id: createId(), period: "", title: "", organization: "", description: "" };
 }
 
+/** A 4 szekció megjelenő címe (többnyelvűsíthetőség). */
+export interface SectionTitles {
+  experience: string;
+  projects: string;
+  education: string;
+  competences: string;
+}
+
+/** Alapértelmezett (angol) szekció-címek. */
+export const DEFAULT_SECTION_TITLES: SectionTitles = {
+  experience: "Work Experience",
+  projects: "Projects",
+  education: "Education",
+  competences: "Competences",
+};
+
 /** Üres elérhetőség. */
 export function emptyContact(): ContactItem {
   return { id: createId(), text: "", url: "" };
+}
+
+/** Üres kompetencia-elem. */
+export function emptySkill(): SkillItem {
+  return { id: createId(), text: "" };
 }

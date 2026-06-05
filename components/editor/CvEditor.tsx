@@ -6,25 +6,41 @@ import {
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
   DEFAULT_SECTION_INDENT_MM,
+  DEFAULT_SECTION_TITLES,
   MAX_PHOTO_OFFSET_X_MM,
   MAX_PHOTO_WIDTH_PX,
   MIN_PHOTO_OFFSET_X_MM,
   MIN_PHOTO_WIDTH_PX,
   PHOTO_ASPECT,
   emptyContact,
+  emptySkill,
   type ContactItem,
   type CvData,
   type PhotoCrop,
   type PhotoShape,
+  type SectionKey,
 } from "@/lib/cv-types";
-import { useCvStorage } from "@/lib/use-cv-storage";
+import { migrate, useCvWorkspace } from "@/lib/use-cv-storage";
 import ResumePreview from "@/components/ResumePreview";
 import TimelineEditor from "./TimelineEditor";
 import PhotoCropper from "./PhotoCropper";
-import { Field, IconButton, SectionCard, TextArea, TextInput } from "./fields";
+import VersionTabs from "./VersionTabs";
+import { EyeToggle, Field, IconButton, SectionCard, TextArea, TextInput } from "./fields";
 
 export default function CvEditor() {
-  const { cv, setCv, loaded, resetCv } = useCvStorage();
+  const {
+    cv,
+    setCv,
+    loaded,
+    resetCv,
+    documents,
+    activeId,
+    selectVersion,
+    addVersion,
+    duplicateVersion,
+    renameVersion,
+    removeVersion,
+  } = useCvWorkspace();
   const importInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   // A szerkesztendő (eredeti) kép forrása; null = nincs nyitva a cropper.
@@ -49,14 +65,28 @@ export default function CvEditor() {
   }
 
   // ── Skillek ────────────────────────────────────────────────
-  function updateSkill(index: number, value: string) {
-    patch({ skills: cv.skills.map((s, i) => (i === index ? value : s)) });
+  function updateSkill(id: string, value: string) {
+    patch({ skills: cv.skills.map((s) => (s.id === id ? { ...s, text: value } : s)) });
   }
-  function removeSkill(index: number) {
-    patch({ skills: cv.skills.filter((_, i) => i !== index) });
+  function toggleSkillHidden(id: string) {
+    patch({ skills: cv.skills.map((s) => (s.id === id ? { ...s, hidden: !s.hidden } : s)) });
+  }
+  function removeSkill(id: string) {
+    patch({ skills: cv.skills.filter((s) => s.id !== id) });
   }
   function addSkill() {
-    patch({ skills: [...cv.skills, ""] });
+    patch({ skills: [...cv.skills, emptySkill()] });
+  }
+
+  // ── Szekciók rejtése ───────────────────────────────────────
+  function sectionHidden(key: SectionKey) {
+    return (cv.hiddenSections ?? []).includes(key);
+  }
+  function toggleSection(key: SectionKey) {
+    const set = new Set(cv.hiddenSections ?? []);
+    if (set.has(key)) set.delete(key);
+    else set.add(key);
+    patch({ hiddenSections: [...set] });
   }
 
   // ── Profilkép ──────────────────────────────────────────────
@@ -114,7 +144,12 @@ export default function CvEditor() {
       try {
         const parsed = JSON.parse(String(reader.result));
         if (typeof parsed?.firstName === "string" && Array.isArray(parsed?.experience)) {
-          setCv(parsed as CvData);
+          // Az importált CV ÚJ verzióként nyílik meg, hogy a meglévő verziók
+          // ne íródjanak felül. A nevet a fájlból / a névből próbáljuk kitalálni.
+          const baseName = file.name.replace(/\.json$/i, "").trim();
+          const personName = `${parsed.firstName ?? ""} ${parsed.lastName ?? ""}`.trim();
+          // Importkor is felhozzuk az aktuális sémára (pl. régi string-skillek).
+          addVersion(migrate(parsed as CvData), baseName || personName || undefined);
         } else {
           alert("A fájl nem érvényes CV JSON.");
         }
@@ -143,7 +178,21 @@ export default function CvEditor() {
 
   return (
     <>
-    <div className="screen-only mx-auto flex max-w-[1500px] gap-6 p-4 lg:p-6">
+    <div className="screen-only mx-auto max-w-[1500px] p-4 lg:p-6">
+      {/* ── Verzió-tabok: váltás / létrehozás / átnevezés / törlés ── */}
+      <div className="mb-4">
+        <VersionTabs
+          documents={documents}
+          activeId={activeId}
+          onSelect={selectVersion}
+          onAdd={() => addVersion()}
+          onDuplicate={duplicateVersion}
+          onRename={renameVersion}
+          onRemove={removeVersion}
+        />
+      </div>
+
+      <div className="flex gap-6">
       {/* ── Bal oldal: szerkesztő űrlap ── (nyomtatáskor elrejtve) */}
       <div className="w-full max-w-[640px] shrink-0 space-y-4">
         {/* Toolbar */}
@@ -364,16 +413,18 @@ export default function CvEditor() {
             <div className="space-y-2">
               {cv.contacts.map((c) => (
                 <div key={c.id} className="flex items-center gap-2">
-                  <TextInput
-                    value={c.text}
-                    onChange={(e) => updateContact(c.id, { text: e.target.value })}
-                    placeholder="Megjelenő szöveg"
-                  />
-                  <TextInput
-                    value={c.url ?? ""}
-                    onChange={(e) => updateContact(c.id, { url: e.target.value })}
-                    placeholder="Link (opcionális)"
-                  />
+                  <span className={`flex flex-1 gap-2 ${c.hidden ? "opacity-50" : ""}`}>
+                    <TextInput
+                      value={c.text}
+                      onChange={(e) => updateContact(c.id, { text: e.target.value })}
+                      placeholder="Megjelenő szöveg"
+                    />
+                    <TextInput
+                      value={c.url ?? ""}
+                      onChange={(e) => updateContact(c.id, { url: e.target.value })}
+                      placeholder="Link (opcionális)"
+                    />
+                  </span>
                   <label
                     title="Új sorban kezdődik a fejlécben"
                     className="flex shrink-0 items-center gap-1 whitespace-nowrap text-xs text-neutral-500"
@@ -385,6 +436,10 @@ export default function CvEditor() {
                     />
                     új sor
                   </label>
+                  <EyeToggle
+                    hidden={c.hidden}
+                    onClick={() => updateContact(c.id, { hidden: !c.hidden })}
+                  />
                   <IconButton title="Törlés" onClick={() => removeContact(c.id)}>
                     ✕
                   </IconButton>
@@ -395,7 +450,11 @@ export default function CvEditor() {
         </SectionCard>
 
         {/* Bevezető */}
-        <SectionCard title="Bevezető">
+        <SectionCard
+          title="Bevezető"
+          hidden={sectionHidden("summary")}
+          onToggleHidden={() => toggleSection("summary")}
+        >
           <TextArea
             value={cv.summary}
             onChange={(e) => patch({ summary: e.target.value })}
@@ -403,24 +462,36 @@ export default function CvEditor() {
         </SectionCard>
 
         <TimelineEditor
-          title="Work Experience"
+          title={cv.sectionTitles?.experience ?? DEFAULT_SECTION_TITLES.experience}
           entries={cv.experience}
           onChange={(experience) => patch({ experience })}
+          hidden={sectionHidden("experience")}
+          onToggleHidden={() => toggleSection("experience")}
+          onTitleChange={(t) => patch({ sectionTitles: { ...DEFAULT_SECTION_TITLES, ...cv.sectionTitles, experience: t } })}
         />
         <TimelineEditor
-          title="Projects"
+          title={cv.sectionTitles?.projects ?? DEFAULT_SECTION_TITLES.projects}
           entries={cv.projects}
           onChange={(projects) => patch({ projects })}
+          hidden={sectionHidden("projects")}
+          onToggleHidden={() => toggleSection("projects")}
+          onTitleChange={(t) => patch({ sectionTitles: { ...DEFAULT_SECTION_TITLES, ...cv.sectionTitles, projects: t } })}
         />
         <TimelineEditor
-          title="Education"
+          title={cv.sectionTitles?.education ?? DEFAULT_SECTION_TITLES.education}
           entries={cv.education}
           onChange={(education) => patch({ education })}
+          hidden={sectionHidden("education")}
+          onToggleHidden={() => toggleSection("education")}
+          onTitleChange={(t) => patch({ sectionTitles: { ...DEFAULT_SECTION_TITLES, ...cv.sectionTitles, education: t } })}
         />
 
         {/* Kompetenciák */}
         <SectionCard
-          title="Competences"
+          title={cv.sectionTitles?.competences ?? DEFAULT_SECTION_TITLES.competences}
+          hidden={sectionHidden("competences")}
+          onToggleHidden={() => toggleSection("competences")}
+          onTitleChange={(t) => patch({ sectionTitles: { ...DEFAULT_SECTION_TITLES, ...cv.sectionTitles, competences: t } })}
           action={
             <button
               type="button"
@@ -432,10 +503,13 @@ export default function CvEditor() {
           }
         >
           <div className="space-y-2">
-            {cv.skills.map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <TextInput value={s} onChange={(e) => updateSkill(i, e.target.value)} />
-                <IconButton title="Törlés" onClick={() => removeSkill(i)}>
+            {cv.skills.map((s) => (
+              <div key={s.id} className="flex items-center gap-2">
+                <span className={`flex-1 ${s.hidden ? "opacity-50" : ""}`}>
+                  <TextInput value={s.text} onChange={(e) => updateSkill(s.id, e.target.value)} />
+                </span>
+                <EyeToggle hidden={s.hidden} onClick={() => toggleSkillHidden(s.id)} />
+                <IconButton title="Törlés" onClick={() => removeSkill(s.id)}>
                   ✕
                 </IconButton>
               </div>
@@ -454,6 +528,7 @@ export default function CvEditor() {
             <ResumePreview cv={cv} />
           </div>
         </div>
+      </div>
       </div>
     </div>
 

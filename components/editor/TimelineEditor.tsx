@@ -1,7 +1,7 @@
 "use client";
 
 import { emptyTimelineEntry, type TimelineEntry } from "@/lib/cv-types";
-import { Field, IconButton, SectionCard, TextArea, TextInput } from "./fields";
+import { EyeToggle, Field, IconButton, SectionCard, TextArea, TextInput } from "./fields";
 
 // Egységes szerkesztő az időrendi szekciókhoz (Work Experience / Projects / Education).
 // A szülő csak az értéklistát és a setter-t adja át.
@@ -10,10 +10,17 @@ export default function TimelineEditor({
   title,
   entries,
   onChange,
+  hidden,
+  onToggleHidden,
+  onTitleChange,
 }: {
   title: string;
   entries: TimelineEntry[];
   onChange: (next: TimelineEntry[]) => void;
+  /** A teljes szekció rejtett-e a CV-ből (a fejléc szem-kapcsolójához). */
+  hidden?: boolean;
+  onToggleHidden?: () => void;
+  onTitleChange?: (newTitle: string) => void;
 }) {
   function update(id: string, patch: Partial<TimelineEntry>) {
     onChange(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
@@ -35,6 +42,9 @@ export default function TimelineEditor({
   return (
     <SectionCard
       title={title}
+      hidden={hidden}
+      onToggleHidden={onToggleHidden}
+      onTitleChange={onTitleChange}
       action={
         <button
           type="button"
@@ -50,8 +60,22 @@ export default function TimelineEditor({
           <p className="text-xs text-neutral-400">Nincs bejegyzés.</p>
         )}
         {entries.map((entry, index) => (
-          <div key={entry.id} className="rounded-md border border-neutral-200 p-3">
+          <div
+            key={entry.id}
+            className={`rounded-md border p-3 ${
+              entry.hidden ? "border-neutral-200 bg-neutral-50" : "border-neutral-200"
+            }`}
+          >
             <div className="mb-2 flex items-center justify-end gap-1">
+              {entry.hidden && (
+                <span className="mr-auto rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500">
+                  Rejtve
+                </span>
+              )}
+              <EyeToggle
+                hidden={entry.hidden}
+                onClick={() => update(entry.id, { hidden: !entry.hidden })}
+              />
               <IconButton
                 title="Fel"
                 onClick={() => move(index, -1)}
@@ -71,12 +95,14 @@ export default function TimelineEditor({
               </IconButton>
             </div>
 
+            <div className={entry.hidden ? "opacity-50" : undefined}>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Időszak">
                 <TextInput
                   value={entry.period}
                   onChange={(e) => update(entry.id, { period: e.target.value })}
                   placeholder="2024. 08. – PRESENT"
+                  className="uppercase"
                 />
               </Field>
               <Field label="Hely / cég">
@@ -84,6 +110,7 @@ export default function TimelineEditor({
                   value={entry.organization}
                   onChange={(e) => update(entry.id, { organization: e.target.value })}
                   placeholder="IVY TECHNOLOGY KFT."
+                  className="uppercase"
                 />
               </Field>
             </div>
@@ -93,6 +120,7 @@ export default function TimelineEditor({
                   value={entry.title}
                   onChange={(e) => update(entry.id, { title: e.target.value })}
                   placeholder="JUNIOR JAVA BACKEND DEVELOPER"
+                  className="uppercase"
                 />
               </Field>
             </div>
@@ -103,6 +131,7 @@ export default function TimelineEditor({
                   onChange={(e) => update(entry.id, { description: e.target.value })}
                 />
               </Field>
+            </div>
             </div>
           </div>
         ))}

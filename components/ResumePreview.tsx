@@ -3,6 +3,7 @@ import {
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
   DEFAULT_SECTION_INDENT_MM,
+  DEFAULT_SECTION_TITLES,
   PHOTO_ASPECT,
   type ContactItem,
   type CvData,
@@ -57,10 +58,10 @@ function Entry({ entry }: { entry: TimelineEntry }) {
   return (
     <div className="break-inside-avoid">
       {entry.period && (
-        <p className="text-[12.5px] font-bold text-neutral-700">{entry.period}</p>
+        <p className="text-[12.5px] font-bold uppercase text-neutral-700">{entry.period}</p>
       )}
       {(entry.title || entry.organization) && (
-        <p className="text-[14px] font-semibold">
+        <p className="text-[14px] font-semibold uppercase">
           <span className="text-[var(--cv-accent)]">
             {entry.title}
             {entry.title && entry.organization ? "," : ""}
@@ -94,6 +95,17 @@ export default function ResumePreview({ cv }: { cv: CvData }) {
   // a tényleges kép pedig ehhez alulra horgonyozva nő — így méretnöveléskor
   // felfelé lóg ki, az alja nem mozdul, a fejléc magassága stabil marad.
   const photoSlotHeight = DEFAULT_PHOTO_WIDTH_PX / photoAspect;
+
+  // Rejtés: a `hidden` jelzővel ellátott elemek és a rejtett szekciók
+  // kimaradnak a renderelt CV-ből (a szerkesztőben továbbra is megvannak).
+  const hiddenSections = new Set(cv.hiddenSections ?? []);
+  const titles = { ...DEFAULT_SECTION_TITLES, ...cv.sectionTitles };
+  const contacts = cv.contacts.filter((c) => !c.hidden);
+  const experience = cv.experience.filter((e) => !e.hidden);
+  const projects = cv.projects.filter((e) => !e.hidden);
+  const education = cv.education.filter((e) => !e.hidden);
+  const skills = cv.skills.filter((s) => !s.hidden);
+
   return (
     <article
       className="cv-page bg-white font-sans text-neutral-800"
@@ -107,7 +119,7 @@ export default function ResumePreview({ cv }: { cv: CvData }) {
             <span className="ml-3 font-normal text-neutral-500">{cv.lastName}</span>
           </h1>
           <div className="mt-2 space-y-0.5 text-[12.5px]">
-            {groupContacts(cv.contacts).map((row, ri) => (
+            {groupContacts(contacts).map((row, ri) => (
               <p
                 key={ri}
                 className={
@@ -170,38 +182,46 @@ export default function ResumePreview({ cv }: { cv: CvData }) {
       <hr className="mt-3 border-neutral-300" />
 
       {/* Bevezető */}
-      {cv.summary && (
+      {!hiddenSections.has("summary") && cv.summary && (
         <p className="mt-3 text-[12.5px] leading-snug text-neutral-600">{cv.summary}</p>
       )}
 
-      <Section title="Work Experience" indent={sectionIndent}>
-        {cv.experience.map((e) => (
-          <Entry key={e.id} entry={e} />
-        ))}
-      </Section>
-
-      <Section title="Projects" indent={sectionIndent}>
-        {cv.projects.map((e) => (
-          <Entry key={e.id} entry={e} />
-        ))}
-      </Section>
-
-      <Section title="Education" indent={sectionIndent}>
-        {cv.education.map((e) => (
-          <Entry key={e.id} entry={e} />
-        ))}
-      </Section>
-
-      <Section title="Competences" indent={sectionIndent}>
-        <ul className="columns-2 gap-8 text-[12.5px] text-neutral-700">
-          {cv.skills.map((s, i) => (
-            <li key={i} className="mb-1 flex break-inside-avoid items-start gap-2">
-              <span className="mt-[6px] h-[5px] w-[5px] shrink-0 rounded-full bg-[var(--cv-accent)]" />
-              <span>{s}</span>
-            </li>
+      {!hiddenSections.has("experience") && (
+        <Section title={titles.experience} indent={sectionIndent}>
+          {experience.map((e) => (
+            <Entry key={e.id} entry={e} />
           ))}
-        </ul>
-      </Section>
+        </Section>
+      )}
+
+      {!hiddenSections.has("projects") && (
+        <Section title={titles.projects} indent={sectionIndent}>
+          {projects.map((e) => (
+            <Entry key={e.id} entry={e} />
+          ))}
+        </Section>
+      )}
+
+      {!hiddenSections.has("education") && (
+        <Section title={titles.education} indent={sectionIndent}>
+          {education.map((e) => (
+            <Entry key={e.id} entry={e} />
+          ))}
+        </Section>
+      )}
+
+      {!hiddenSections.has("competences") && (
+        <Section title={titles.competences} indent={sectionIndent}>
+          <ul className="columns-2 gap-8 text-[12.5px] text-neutral-700">
+            {skills.map((s) => (
+              <li key={s.id} className="mb-1 flex break-inside-avoid items-start gap-2">
+                <span className="mt-[6px] h-[5px] w-[5px] shrink-0 rounded-full bg-[var(--cv-accent)]" />
+                <span>{s.text}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
     </article>
   );
 }
