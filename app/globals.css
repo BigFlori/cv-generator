@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* A CV kiemelő színe (név alatti elérhetőségek, pozíciók, pöttyök). Itt cserélhető. */
+  --cv-accent: #8a2b22;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: #f4f4f5; /* neutral-100 — a szerkesztő háttere */
+  color: #171717;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── A4 CV oldal ───────────────────────────────────────────────
+   Képernyőn fehér "lap", nyomtatásnál pontos A4 méret. */
+.cv-page {
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  /* A belső margót (padding) a ResumePreview állítja inline a cv.pageMargin alapján. */
+}
+
+/* Csak nyomtatásra szánt konténer — képernyőn rejtve. */
+.print-only {
+  display: none;
+}
+
+/* ── Nyomtatás: csak a CV oldal jelenjen meg ─────────────────── */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* A szerkesztő felület teljesen kikerül a nyomtatásból (display, nem visibility,
+     hogy ne foglaljon helyet és ne keletkezzenek üres oldalak). */
+  .screen-only {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  /* Nyomtatásban a lap csak a tartalom magasságát vegye fel — a fix 297mm
+     min-magasság al-pixeles kerekítés miatt fölösleges második oldalt szülne. */
+  .cv-page {
+    min-height: auto;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  /* A pöttyök / kiemelt színek nyomtatásban is jelenjenek meg. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
