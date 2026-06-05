@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   CV_SCHEMA_VERSION,
   DEFAULT_ACCENT_COLOR,
+  DEFAULT_MARGIN_BOTTOM_MM,
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
@@ -111,6 +112,12 @@ export function migrate(cv: CvData): CvData {
   // v10: kiemelő szín. Korábbi adatban nincs — a CSS-ben eddig beégetett értékkel pótoljuk.
   if (typeof next.accentColor !== "string" || !next.accentColor) {
     next.accentColor = DEFAULT_ACCENT_COLOR;
+  }
+
+  // v11: külön alsó margó. Korábbi adatban nincs — a felső margó értékét veszi fel,
+  // hogy a meglévő CV-k vizuálisan ne változzanak.
+  if (typeof next.marginBottom !== "number") {
+    next.marginBottom = typeof next.marginY === "number" ? next.marginY : DEFAULT_MARGIN_BOTTOM_MM;
   }
 
   next.schemaVersion = CV_SCHEMA_VERSION;

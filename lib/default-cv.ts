@@ -1,6 +1,7 @@
 import {
   CV_SCHEMA_VERSION,
   DEFAULT_ACCENT_COLOR,
+  DEFAULT_MARGIN_BOTTOM_MM,
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
@@ -15,6 +16,7 @@ export const defaultCv: CvData = {
   schemaVersion: CV_SCHEMA_VERSION,
 
   marginY: DEFAULT_MARGIN_Y_MM,
+  marginBottom: DEFAULT_MARGIN_BOTTOM_MM,
   marginX: DEFAULT_MARGIN_X_MM,
   sectionIndent: DEFAULT_SECTION_INDENT_MM,
 
@@ -38,7 +40,7 @@ export const defaultCv: CvData = {
   ],
 
   summary:
-    "Full-stack software engineer with 4 years of professional experience, specializing in cloud-native web applications. Passionate about clean architecture, developer experience, and building products that users actually enjoy. Comfortable leading small teams and mentoring junior developers.",
+    "Full-stack software engineer with 4 years of experience specializing in cloud-native web applications. Passionate about clean architecture and developer experience. Comfortable leading small teams and mentoring junior developers.",
 
   experience: [
     {
@@ -47,7 +49,7 @@ export const defaultCv: CvData = {
       title: "SENIOR FULL-STACK DEVELOPER",
       organization: "NEXORA SOLUTIONS ZRT.",
       description:
-        "Leading the frontend chapter of a SaaS analytics platform serving 50 000+ users. Migrated a legacy monolith to a React + Node.js microservices architecture, reducing average page load time by 40%. Conduct regular code reviews and onboard new team members.",
+        "Leading the frontend chapter of a SaaS analytics platform (50 000+ users). Migrated legacy monolith to React + Node.js microservices, reducing page load by 40%. Code reviews and onboarding.",
     },
     {
       id: "exp-2",
@@ -55,7 +57,7 @@ export const defaultCv: CvData = {
       title: "FULL-STACK DEVELOPER",
       organization: "BRIGHTLOOP KFT.",
       description:
-        "Built and maintained customer-facing features for an e-commerce platform (Next.js, TypeScript, PostgreSQL). Introduced end-to-end testing with Playwright, cutting regression bugs by 60%. Collaborated in a cross-functional team using Scrum.",
+        "Built customer-facing features for an e-commerce platform (Next.js, TypeScript, PostgreSQL). Introduced Playwright E2E tests, cutting regression bugs by 60%.",
     },
     {
       id: "exp-3",
@@ -63,7 +65,7 @@ export const defaultCv: CvData = {
       title: "JUNIOR FRONTEND DEVELOPER",
       organization: "WEBCRAFT STUDIO",
       description:
-        "Developed responsive UI components for various client projects using React and Tailwind CSS. Participated in UX workshops and translated Figma designs into pixel-perfect implementations.",
+        "Developed responsive UI components using React and Tailwind CSS. Translated Figma designs into pixel-perfect implementations.",
     },
   ],
 
@@ -74,7 +76,7 @@ export const defaultCv: CvData = {
       title: "PULSEDESK",
       organization: "OPEN SOURCE / SIDE PROJECT",
       description:
-        "Real-time team task board with WebSocket sync, built with Next.js 15, Drizzle ORM, and Supabase. Features drag-and-drop, role-based permissions, and Slack notifications. 200+ GitHub stars.",
+        "Real-time team task board (Next.js 15, Drizzle ORM, Supabase) with drag-and-drop, role-based permissions, and Slack notifications. 200+ GitHub stars.",
     },
     {
       id: "proj-2",
@@ -82,7 +84,7 @@ export const defaultCv: CvData = {
       title: "INVOICEFLOW",
       organization: "FREELANCE",
       description:
-        "Automated invoicing tool for Hungarian freelancers with Számlázz.hu API integration. Reduced invoice creation time from ~15 minutes to under 30 seconds. Used technologies: React, tRPC, Prisma, Railway.",
+        "Invoicing tool for Hungarian freelancers with Számlázz.hu integration. Reduced invoice creation from ~15 min to under 30 sec. Stack: React, tRPC, Prisma.",
     },
   ],
 
@@ -93,7 +95,7 @@ export const defaultCv: CvData = {
       title: "BSC COMPUTER SCIENCE",
       organization: "BUDAPESTI MŰSZAKI ÉS GAZDASÁGTUDOMÁNYI EGYETEM",
       description:
-        "Graduated with distinction (GPA 4.62 / 5.00). Thesis: \"Performance comparison of server-side rendering strategies in modern JavaScript frameworks\". Relevant courses: Algorithms & Data Structures, Databases, Software Engineering, Computer Networks.",
+        "Graduated with distinction (GPA 4.62 / 5.00). Thesis: \"SSR performance comparison in modern JS frameworks\". Courses: Algorithms, Databases, Software Engineering.",
     },
     {
       id: "edu-2",
@@ -101,7 +103,7 @@ export const defaultCv: CvData = {
       title: "INFORMATICS",
       organization: "FAZEKAS MIHÁLY FŐGIMNÁZIUM, BUDAPEST",
       description:
-        "Mathematics and informatics specialisation. National finalist in the Nemes Tihamér programming competition (2016, 2017). Graduated with 4.88 average.",
+        "Maths and informatics specialisation. National finalist in the Nemes Tihamér programming competition (2016, 2017).",
     },
   ],
 
@@ -115,7 +117,5 @@ export const defaultCv: CvData = {
     { id: "skill-4", text: "Docker, CI/CD, GitHub Actions" },
     { id: "skill-5", text: "English – C1 (IELTS 7.5, 2021)" },
     { id: "skill-6", text: "Agile / Scrum, JIRA" },
-    { id: "skill-7", text: "Figma, UI/UX fundamentals" },
-    { id: "skill-8", text: "Category B driving licence" },
   ],
 };

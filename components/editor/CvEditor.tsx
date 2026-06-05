@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import {
   ACCENT_PALETTE,
   DEFAULT_ACCENT_COLOR,
+  DEFAULT_MARGIN_BOTTOM_MM,
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
@@ -239,7 +240,7 @@ export default function CvEditor() {
         {/* Lap beállítások */}
         <SectionCard title="Lap">
           <div className="space-y-3">
-            <Field label={`Felső / alsó margó: ${cv.marginY ?? DEFAULT_MARGIN_Y_MM} mm`}>
+            <Field label={`Felső margó: ${cv.marginY ?? DEFAULT_MARGIN_Y_MM} mm`}>
               <input
                 type="range"
                 min={8}
@@ -247,6 +248,17 @@ export default function CvEditor() {
                 step={1}
                 value={cv.marginY ?? DEFAULT_MARGIN_Y_MM}
                 onChange={(e) => patch({ marginY: Number(e.target.value) })}
+                className="w-full accent-neutral-900"
+              />
+            </Field>
+            <Field label={`Alsó margó: ${cv.marginBottom ?? DEFAULT_MARGIN_BOTTOM_MM} mm`}>
+              <input
+                type="range"
+                min={8}
+                max={30}
+                step={1}
+                value={cv.marginBottom ?? DEFAULT_MARGIN_BOTTOM_MM}
+                onChange={(e) => patch({ marginBottom: Number(e.target.value) })}
                 className="w-full accent-neutral-900"
               />
             </Field>

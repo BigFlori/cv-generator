@@ -1,7 +1,7 @@
 // A CV adatmodellje. Minden kliensoldali — localStorage-ban tárolódik.
 // A schemaVersion segít, ha később változik a szerkezet (migráció a betöltésnél).
 
-export const CV_SCHEMA_VERSION = 10;
+export const CV_SCHEMA_VERSION = 11;
 
 /** A renderelt CV elrejthető szekciói. */
 export type SectionKey =
@@ -27,7 +27,8 @@ export const ACCENT_PALETTE: { label: string; color: string }[] = [
 ];
 
 /** A lap alapértelmezett margói milliméterben. */
-export const DEFAULT_MARGIN_Y_MM = 15; // felső / alsó
+export const DEFAULT_MARGIN_Y_MM = 15; // felső
+export const DEFAULT_MARGIN_BOTTOM_MM = 15; // alsó
 export const DEFAULT_MARGIN_X_MM = 20; // bal / jobb
 
 /** A szekciók tartalmának alapértelmezett behúzása (a vezérvonal és a szöveg közti tér) mm-ben. */
@@ -99,7 +100,8 @@ export interface CvData {
   schemaVersion: number;
 
   // Lap beállítások (mm)
-  marginY: number; // felső / alsó
+  marginY: number; // felső
+  marginBottom?: number; // alsó (hiányában marginY értéke)
   marginX: number; // bal / jobb
   /** A szekciók tartalmának behúzása (a pontozott vezérvonal és a szöveg közti tér), mm. */
   sectionIndent: number;

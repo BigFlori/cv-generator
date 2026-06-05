@@ -10,18 +10,29 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  scrollbar-gutter: stable; /* görgetősáv helye mindig foglalt, nincs layout shift */
+}
+
 body {
   background: #f4f4f5; /* neutral-100 — a szerkesztő háttere */
   color: #171717;
 }
 
 /* ── A4 CV oldal ───────────────────────────────────────────────
-   Képernyőn fehér "lap", nyomtatásnál pontos A4 méret. */
+   A wrapper pontosan 297mm magas és képernyőn levágja a tartalomt.
+   A belső article a tényleges lap: padding, szín, stb. */
+.cv-page-wrapper {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+}
+
 .cv-page {
   width: 210mm;
-  min-height: 297mm;
   box-sizing: border-box;
-  /* A belső margót (padding) a ResumePreview állítja inline a cv.pageMargin alapján. */
+  /* A belső margót (padding) a ResumePreview állítja inline a cv.marginY/marginX alapján. */
 }
 
 /* Csak nyomtatásra szánt konténer — képernyőn rejtve. */
@@ -50,10 +61,13 @@ body {
     display: block;
   }
 
-  /* Nyomtatásban a lap csak a tartalom magasságát vegye fel — a fix 297mm
-     min-magasság al-pixeles kerekítés miatt fölösleges második oldalt szülne. */
+  /* Nyomtatásban a wrapper ne vágjon le — a tartalom teljes magasságban jelenjen meg. */
+  .cv-page-wrapper {
+    height: auto;
+    overflow: visible;
+  }
+
   .cv-page {
-    min-height: auto;
     margin: 0;
     box-shadow: none;
   }
