@@ -1,4 +1,5 @@
 import {
+  DEFAULT_ACCENT_COLOR,
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
@@ -106,10 +107,12 @@ export default function ResumePreview({ cv }: { cv: CvData }) {
   const education = cv.education.filter((e) => !e.hidden);
   const skills = cv.skills.filter((s) => !s.hidden);
 
+  const accentColor = cv.accentColor ?? DEFAULT_ACCENT_COLOR;
+
   return (
     <article
       className="cv-page bg-white font-sans text-neutral-800"
-      style={{ padding: `${marginY}mm ${marginX}mm` }}
+      style={{ padding: `${marginY}mm ${marginX}mm`, "--cv-accent": accentColor } as React.CSSProperties}
     >
       {/* Fejléc */}
       <header className="flex items-start justify-between gap-6">

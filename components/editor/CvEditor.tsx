@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import {
+  ACCENT_PALETTE,
+  DEFAULT_ACCENT_COLOR,
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
@@ -272,6 +274,26 @@ export default function CvEditor() {
                 className="w-full accent-neutral-900"
               />
             </Field>
+            <Field label="Kiemelő szín">
+              <div className="flex flex-wrap gap-2">
+                {ACCENT_PALETTE.map(({ label, color }) => {
+                  const active = (cv.accentColor ?? DEFAULT_ACCENT_COLOR) === color;
+                  return (
+                    <button
+                      key={color}
+                      type="button"
+                      title={label}
+                      aria-label={label}
+                      onClick={() => patch({ accentColor: color })}
+                      className={`h-7 w-7 rounded-full border-2 transition ${
+                        active ? "border-neutral-900 scale-110" : "border-transparent hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  );
+                })}
+              </div>
+            </Field>
           </div>
         </SectionCard>
 
@@ -281,13 +303,15 @@ export default function CvEditor() {
             <Field label="Keresztnév">
               <TextInput
                 value={cv.firstName}
-                onChange={(e) => patch({ firstName: e.target.value })}
+                onChange={(e) => patch({ firstName: e.target.value.toUpperCase() })}
+                className="uppercase"
               />
             </Field>
             <Field label="Vezetéknév">
               <TextInput
                 value={cv.lastName}
-                onChange={(e) => patch({ lastName: e.target.value })}
+                onChange={(e) => patch({ lastName: e.target.value.toUpperCase() })}
+                className="uppercase"
               />
             </Field>
           </div>

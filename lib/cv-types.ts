@@ -1,7 +1,7 @@
 // A CV adatmodellje. Minden kliensoldali — localStorage-ban tárolódik.
 // A schemaVersion segít, ha később változik a szerkezet (migráció a betöltésnél).
 
-export const CV_SCHEMA_VERSION = 9;
+export const CV_SCHEMA_VERSION = 10;
 
 /** A renderelt CV elrejthető szekciói. */
 export type SectionKey =
@@ -11,12 +11,27 @@ export type SectionKey =
   | "education"
   | "competences";
 
+/** Az alapértelmezett kiemelő szín. */
+export const DEFAULT_ACCENT_COLOR = "#8a2b22";
+
+/** Előre definiált, ehhez a CV-stílushoz illő kiemelő színek. */
+export const ACCENT_PALETTE: { label: string; color: string }[] = [
+  { label: "Burgundi",    color: "#8a2b22" },
+  { label: "Tengerészkék", color: "#1d3557" },
+  { label: "Erdőzöld",   color: "#2e604a" },
+  { label: "Indigó",     color: "#4c4baf" },
+  { label: "Borostyán",  color: "#b45309" },
+  { label: "Palakék",    color: "#374151" },
+  { label: "Rozsdabarna", color: "#7c3a1e" },
+  { label: "Szilvakék",  color: "#5b2d6e" },
+];
+
 /** A lap alapértelmezett margói milliméterben. */
-export const DEFAULT_MARGIN_Y_MM = 18; // felső / alsó
-export const DEFAULT_MARGIN_X_MM = 18; // bal / jobb
+export const DEFAULT_MARGIN_Y_MM = 15; // felső / alsó
+export const DEFAULT_MARGIN_X_MM = 20; // bal / jobb
 
 /** A szekciók tartalmának alapértelmezett behúzása (a vezérvonal és a szöveg közti tér) mm-ben. */
-export const DEFAULT_SECTION_INDENT_MM = 4;
+export const DEFAULT_SECTION_INDENT_MM = 8;
 
 /** A profilkép lehetséges arányai. A `square` 1:1, a `portrait` álló (4:5). */
 export type PhotoShape = "square" | "portrait";
@@ -121,6 +136,9 @@ export interface CvData {
 
   /** A 4 szekció egyedi megjelenő neve. Hiányában az angol alapértelmezés érvényes. */
   sectionTitles?: SectionTitles;
+
+  /** A CV kiemelő színe (hex). Hiányában {@link DEFAULT_ACCENT_COLOR}. */
+  accentColor?: string;
 }
 
 /** Stabil, ütközésmentes id-t ad új bejegyzésekhez (csak kliensen hívandó). */

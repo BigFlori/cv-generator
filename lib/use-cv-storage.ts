@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   CV_SCHEMA_VERSION,
+  DEFAULT_ACCENT_COLOR,
   DEFAULT_MARGIN_X_MM,
   DEFAULT_MARGIN_Y_MM,
   DEFAULT_PHOTO_WIDTH_PX,
@@ -105,6 +106,11 @@ export function migrate(cv: CvData): CvData {
     next.sectionTitles = { ...DEFAULT_SECTION_TITLES };
   } else {
     next.sectionTitles = { ...DEFAULT_SECTION_TITLES, ...next.sectionTitles };
+  }
+
+  // v10: kiemelő szín. Korábbi adatban nincs — a CSS-ben eddig beégetett értékkel pótoljuk.
+  if (typeof next.accentColor !== "string" || !next.accentColor) {
+    next.accentColor = DEFAULT_ACCENT_COLOR;
   }
 
   next.schemaVersion = CV_SCHEMA_VERSION;
