@@ -1,3 +1,9 @@
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
+
+# Biztonsági javítások tranzitív függőségekre (a szülőcsomagok verziótartományán
+# belül maradva). Eltávolíthatók, ha a szülők maguktól is a javított verziót húzzák.
+overrides:
+  browserslist: ^4.29.5
+  brace-expansion@5: ^5.0.12

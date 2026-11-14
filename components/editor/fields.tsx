@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 // Apró, újrahasználható űrlap-elemek a szerkesztőhöz.
 
@@ -121,11 +121,8 @@ export function SectionCard({
   const [draft, setDraft] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Ha a szülő kívülről frissíti a title-t (pl. undo), a draft is frissül.
-  useEffect(() => {
-    if (!editing) setDraft(title);
-  }, [title, editing]);
-
+  // A draft csak szerkesztés közben látszik, és startEdit() mindig a friss
+  // title-ből tölti fel — így külső title-változás (pl. undo) után sem marad el.
   function startEdit() {
     setDraft(title);
     setEditing(true);

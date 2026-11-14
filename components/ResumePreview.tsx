@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { safeLinkUrl } from "@/lib/safe-url";
 import {
   DEFAULT_ACCENT_COLOR,
   DEFAULT_MARGIN_BOTTOM_MM,
@@ -155,8 +156,8 @@ export default function ResumePreview({ cv }: { cv: CvData }) {
                     {row.map((c, i) => (
                       <span key={c.id}>
                         {i > 0 && <span className="mx-1.5 text-neutral-400">·</span>}
-                        {c.url ? (
-                          <a href={c.url} className="hover:underline">
+                        {safeLinkUrl(c.url) ? (
+                          <a href={safeLinkUrl(c.url)} className="hover:underline">
                             {c.text}
                           </a>
                         ) : (

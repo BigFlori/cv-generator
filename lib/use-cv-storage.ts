@@ -15,6 +15,7 @@ import {
   type SkillItem,
 } from "./cv-types";
 import { defaultCv } from "./default-cv";
+import { isHexColor, isSafeImageDataUrl } from "./safe-url";
 
 // Az új, több-verziós tároló kulcsa. A régi (egy CV-s) adatot az első
 // betöltéskor felhozzuk ebbe a formába — lásd readStoredWorkspace().
@@ -119,6 +120,14 @@ export function migrate(cv: CvData): CvData {
   if (typeof next.marginBottom !== "number") {
     next.marginBottom = typeof next.marginY === "number" ? next.marginY : DEFAULT_MARGIN_BOTTOM_MM;
   }
+
+  // Biztonság: importált / tárolt adatból csak beágyazott kép (data:image/…)
+  // és hex szín maradhat — külső URL vagy tetszőleges CSS-érték nem.
+  if (next.photoDataUrl && !isSafeImageDataUrl(next.photoDataUrl)) next.photoDataUrl = "";
+  if (next.photoOriginalDataUrl && !isSafeImageDataUrl(next.photoOriginalDataUrl)) {
+    next.photoOriginalDataUrl = "";
+  }
+  if (!isHexColor(next.accentColor)) next.accentColor = DEFAULT_ACCENT_COLOR;
 
   next.schemaVersion = CV_SCHEMA_VERSION;
   return next;
